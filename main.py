@@ -1,6 +1,6 @@
 from nicegui import ui
 import paho.mqtt.client as pah_mqtt
-import os, subprocess, json, sys, time
+import os, subprocess, json, time
 from control_http import write_coils as control_outputs_http
 from modbus_client import control_coils as control_outputs_modbus
 
