@@ -96,5 +96,5 @@ if __name__ == '__main__':
     # Connect to the MQTT broker before starting the Flask app
     connect_mqtt()
     
-    # Run the Flask app on port 8081
-    app.run(debug=False, port=8081, host="0.0.0.0")
+    # Run the Flask app on port 8083
+    app.run(debug=False, port=8083, host="0.0.0.0")
