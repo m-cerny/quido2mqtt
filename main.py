@@ -215,7 +215,7 @@ settings_ui.set_text(str(data))
 
 # Start the MQTT loop in a separate thread
 mqtt_client.loop_start()
-ui.run(title="quido2mqtt", dark=True, native=False, port=8082)
+ui.run(title="quido2mqtt", dark=True, native=False, port=8082, show=False)
 
 
 
