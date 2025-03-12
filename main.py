@@ -7,7 +7,7 @@ from modbus_client import control_coils as control_outputs_modbus
 """ 
 TODO:
 
-- pokud pouziju modbusRTU neni vytvorena funkce na zapis
+- modbusRTU 
 
 """
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -34,14 +34,10 @@ if COMUNICATION_PROTOCOL == "modbus" or COMUNICATION_PROTOCOL == "http":
 else:
     raise ValueError("Comunication protocol has to be 'modbus' or 'http")
 
-
-
-# Global variable to hold the elements reference
+# Global variable to hold the gui elements reference
 
 ins_value = [{'In ': str(i+1), 'state': '--'} for i in range(IO_PORTS)]
-
 outs_value = [{'Out ': str(i+1), 'state': '--'} for i in range(IO_PORTS)]
-
 
 def publish_coil_state(coil_index:int, state:int) -> None:
     """
@@ -56,9 +52,7 @@ def publish_coil_state(coil_index:int, state:int) -> None:
     topic = f"{MQTT_TOPIC}/{MQTT_SUBTOPIC[1]}"
     mqtt_client.publish(topic, payload_json)
 
-
-### outputs
-def on_outputs(outs):
+def on_outputs(outs:list) -> None:
     """change state of inputs in gui"""
     global outs_table
     for i, item in enumerate(outs_value):
@@ -68,17 +62,14 @@ def on_outputs(outs):
             item['state'] = 'Off'    
 
     outs_table.update_rows(rows=outs_value)
-### temp
-def on_temp(temp):
 
-    global temp_value
-    temp_value = temp
+def on_temp(temp:int) -> None:
+    """Update gui element"""
 
-    temp_cir.set_value(temp_value)
-    print(f"Temp update: {temp_value}")
+    temp_cir.set_value(temp)
+    print(f"Temp update: {temp}")
 
-### inputs
-def on_input(ins):
+def on_input(ins:list) -> None:
     """change state of inputs in gui"""
     global ins_table
     for i, item in enumerate(ins_value):
@@ -90,6 +81,7 @@ def on_input(ins):
     ins_table.update_rows(rows=ins_value)
    
 def create_elements():
+    """Defining gui elements"""
 
     global ins_table
     global outs_table
@@ -145,8 +137,8 @@ def create_elements():
                 temp_cir = ui.circular_progress(min=0, max=45, size="xl", color="red").tooltip("temperature [°C]")
  
 
-def read(protocol):
-    """ Starts reading of quido states. By MODBUS or HTTP """
+def read(protocol:str) -> None:
+    """ Starts reading quido states. By MODBUS or HTTP """
     if protocol == "modbus":
         script_path = os.path.join(script_dir, "read_modbus2mqtt.py")
         process = subprocess.Popen(['python', script_path])
@@ -162,16 +154,16 @@ def on_connect(client, userdata, flags, reason_code, properties):
     # Subscribe to the topic
     mqtt_client.subscribe(f"{MQTT_TOPIC}/#")
 
-def coil_control(index, state):
+def coil_control(index:int, state:int) -> None:
     """ function for controling coils via http or modbus"""
     if COMUNICATION_PROTOCOL == "http":
         control_outputs_http(index+1, "on" if state == 1 else "off") # control coils states by mqtt msg
     if COMUNICATION_PROTOCOL == "modbus":
         time.sleep(0.5)
-        control_outputs_modbus(index, True if state == 1 else False)
-    
+        control_outputs_modbus(index, True if state == 1 else False)  
 
 def on_message(client, userdata, message):
+    """Handle a mqtt msg and run propper function"""
     payload = str(message.payload.decode())
     print(f" received payload: {payload}")
     retain_msg = message.retain
@@ -182,25 +174,25 @@ def on_message(client, userdata, message):
         # switch gui elements accordingly
         outs = payload_dict["coils"]
         on_outputs(outs)
-    except Exception as e:
+    except Exception:
         print(f"coils is not processed")
 
     try:
         index, state = payload_dict["coils_control"]
         coil_control(index, state)                     
-    except Exception as e:
+    except Exception:
         print(f"coils_control is not processed")  
 
     try:
         temp = payload_dict["temp"]
         on_temp(temp)
-    except Exception as e:
+    except Exception:
         print(f"temp is not processed")   
     
     try:
         ins = payload_dict["inputs"]
-        on_input(ins)                
-    except Exception as e:
+        on_input(ins)               
+    except Exception:
         print(f"inputs is not processed")
     
 # MQTT client setup
@@ -215,6 +207,8 @@ settings_ui.set_text(str(data))
 
 # Start the MQTT loop in a separate thread
 mqtt_client.loop_start()
+
+# Start GUI
 ui.run(title="quido2mqtt", dark=True, native=False, port=8082, show=False)
 
 

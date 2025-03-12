@@ -7,6 +7,6 @@
 "mqtt_subtopics": ["out", "in"],
 "modbus_port": 502,
 "modbus_protocol": "tcp",
-"comunication_protocol": "modbus",
+"comunication_protocol": "http",
 "io_ports": 8
 }
