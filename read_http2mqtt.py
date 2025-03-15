@@ -68,15 +68,7 @@ def read_request():
         Value should be ins or outs
         """
         value = list(value)
-        output = []
-
-        for x in value:
-            if x == "1":
-                output.append(1)
-            else:
-                output.append(0)
-        
-        return output
+        output = [1 if x == "1" else 0 for x in value]
 
     payload_dict = {
     "coils": transform(outs),
